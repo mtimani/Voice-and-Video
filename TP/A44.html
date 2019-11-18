@@ -1,0 +1,85 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="Author" content="noullet">
+   <meta name="GENERATOR" content="Mozilla/4.78 [fr] (Windows NT 5.0; U) [Netscape]">
+   <title>Donnees Multimedia : A44</title>
+</head>
+<body text="#000000" bgcolor="#FFDEAD" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+
+<center>
+<h1>TP codage voix et image : compression audio</h1>
+<h2>le format A44</h2></center>
+
+<h2>Objectif</h2>
+Faire des expérimentations montrant la faisabilité et l'intérêt 
+de la quantification appliquée sur des sous-bandes étroites.
+
+<h2>Approche proposée</h2>
+<ul>
+<li>On utilisera le code de filtrage en 32 sous-bandes de la distribution
+ISO-MPEG version 05 qui est aussi celui du format
+<a href="https://noullet-gei.gitlab.io/dmm/Chap3.3/MP3/index.html">MP3</a>.</li>
+<li>Les échantillons de chaque sous bande seront quantifiés et convertis en entiers sur 16 bits</li>
+<li>Ces données seront comprimées à l'aide d'un algorithme de compression sans perte standard. C'est la quantification
+antérieure qui déterminera l'efficacité de cette compression</li>
+<li>Le flux audio sera d&eacute;coup&eacute;e en tranches temporelles ou trames,
+de longueur fixe pour un flux donn&eacute;</li>
+<li>A l'int&eacute;rieur d'une trame les param&egrave;tres d'&eacute;chelle
+et de quantification sont constants</li>
+<li>Un format de données spécifique "A44" sera créé pour contenir ces trames quantifiées</li>
+<li>Le programme codeur-décodeur effectuera la conversion WAV -> A44 et inversement</li>
+</ul>
+
+<h2>Format A44</h2>
+<ul>
+<li>Les échantillons des 32 sous bandes sont stockés sur 16 bits signés, quelle que soit la quantification appliquée</li>
+<li>Le fichier A44 est de taille semblable au fichier WAV, il n'y a pas de compression apparente,
+cependant grâce à la quantification mise en oeuvre, le fichier A44 sera plus ou moins compressible par les méthodes génériques
+(zip, gzip, 7z, bzip2, lzma)</li>
+<li>L'ordre des échantillons sera le suivant, en vue de faciliter la compression sans perte :
+<ul><li>chaque trame contient 32 sections représentant les 32 sous-bandes dans l'ordre fréquentiel</li>
+<li>dans chaque section les échantillons de la sous bande sont dans l'ordre chronologique, avec les canaux L et R sont entrelacés</li>
+</ul></li>
+<li>le fichier A44 brut n'a pas de header, il ne contient que des échantillons bruts sur 16 bits, les parametres suivants sont implicites :
+<ul><li>frequ. d'échantillonnage 44100 Hz</li>
+<li>stéreo sur 2 canaux </li>
+<li>durée déduite de la taille du fichier</li>
+</ul>
+</li>
+</ul>
+<h2>Elements fournis</h2>
+<h3>1. Démonstration de quantification</h3>
+L'archive <a href="WSUB7.zip">WSUB7.zip</a> contient le code source d'un programme d'évaluation de
+la quantification par sous-bandes.
+<ul><li>ce programme contient le code de filtrage en 32 sous-bandes ISO-MPEG (dit "kit01")</li>
+<li>a partir d'un fichier WAV, il effectue le découpage, la <a href="PLOT/a42_quant.html">quantification</a> 
+et reconstruit immédiatement un nouveau fichier WAV (les données quantifiées ne sont pas stockées)</li>
+<li>la quantification est définie par un pas uniforme</li>
+<li>le programme lit le pas de quantification pour chaque bande dans un fichier texte <b>quant.txt</b>.</li>
+<li>dans un but de comparaison, le programme peut aussi appliquer une quantification sur l'audio brut (sans découpage en sous-bandes)</li>
+<li>Ce code source est compatible avec gcc sous Windows (MinGW) et Linux</li>
+</ul>
+<h3>2. Codeur A44</h3>
+L'archive <a href="A44c0.zip">A44c0.zip</a> contient le code source d'un programme codeur-decodeur A44.<br>
+Ce programme contient le code de filtrage en 32 sous-bandes ISO-MPEG (dit "kit01").<br>
+La tâche de quantification est prévue dans la fonction <b>quantif()</b> du fichier <b>quantizer.c</b>.<br>
+Par défaut cette fonction applique une perte minimale, en utilisant les 2<sup>16</sup> codes possibles.<br>
+La compressibilité des données pourra être améliorée en réduisant le nombre de codes utilisés :
+<ul><li>la quantification pourra être optimisée en fonction du rang de la sous-bande, en particulier la première sous-bande
+devra subir un minimum de perte alors que les 16 sous-bandes de rang élevé pourront être quantifiées très aggressivement</li>
+<li>une quantification non-uniforme est possible et probablement souhaitable
+(<a href="https://noullet-gei.gitlab.io/dmm/Chap3.4/DMM34.html" target="_blank">exemples</a>)</li>
+<li>la fonction de quantification doit impérativement être monotone croissante</li>
+<li>la fonction de dé-quantification est créée automatiquement par inversion de la fonction de quantification</li>
+</ul>
+
+<h2>Etapes du travail à effectuer (2 séances)</h2>
+<ol><li>Compiler et tester le programme WSUB,<br>
+Observer l'effet de la quantification sur la qualité du son et la compressibilité </li>
+<li>Compiler et tester le programme a44,<br>
+modifier la fonction de quantification pour optimiser la compressibilité tout en préservant une qualité audio acceptable</li>
+
+</body>
+</html>

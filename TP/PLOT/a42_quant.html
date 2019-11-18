@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Expérience WSUB2</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="jquery.jqplot.css" />
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="jquery.jqplot.min.js"></script>
+<script type="text/javascript" src="jqplot.cursor.min.js"></script>
+<script type="text/javascript" src="plot_a42.js"></script>
+</head>
+
+<body>
+<h1>Expérience WSUB2</h1>
+<p>La fonction de quantification est représentée pour 3 valeurs du pas de quantification.</p>
+
+<div id="moncanvas" style="width:800px;height:600px; "></div>
+<ul>
+<li>Zoom in : draguer un rectangle de selection</li>
+<li>Zoom out : double clic</li>
+</ul>
+<p><small>Graphique propulsé en Javascript sous HTML5 par <a href="http://www.jqplot.com">jqplot/jquery</a></small></p>
+<script class="code" type="text/javascript">
+$(document).ready(function(){
+$.jqplot('moncanvas',  [plot1,plot2,plot3],
+{ title:"Quantificateur",
+  series:[
+	{
+	color:'#FF0000',
+	lineWidth: 2.0, // Width of the line in pixels.
+        shadow: false,   // show shadow or not.
+        showLine: true,     // whether to render the line segments or not.
+        showMarker: false,   // render the data point markers or not.
+	label:'pas = 0.02'
+	},
+	{
+	color:'#00DD33',
+	lineWidth: 2.0, // Width of the line in pixels.
+        shadow: false,   // show shadow or not.
+        showLine: true,     // whether to render the line segments or not.
+        showMarker: false,   // render the data point markers or not.
+	label:'pas = 0.1'
+	},
+	{
+	color:'#0033FF',
+	lineWidth: 2.0, // Width of the line in pixels.
+        shadow: false,   // show shadow or not.
+        showLine: true,     // whether to render the line segments or not.
+        showMarker: false,   // render the data point markers or not.
+	label:'pas = 0.4'
+	}
+	],
+  legend:{show:true, location:'se'},
+  cursor:{show:true, zoom:true, showTooltip:false} 
+}); // jqplot
+});	// document ready
+</script>
+
+
+
+</body></html>

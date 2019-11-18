@@ -1,0 +1,86 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="Author" content="noullet">
+   <meta name="GENERATOR" content="Mozilla/4.78 [fr] (Windows NT 5.0; U) [Netscape]">
+   <title>Donnees Multimedia : spec. RT4V</title>
+</head>
+<body text="#000000" bgcolor="#FFDEAD" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+
+<center>
+<h1>TP codage voix et image : compression video avec estimation de mouvement</h1>
+<h1>le format V42</h1></center>
+
+<h2>Objectif</h2>
+Faire des expérimentations montrant l'intérêt et la faisabilité de trois techniques :
+<ol>
+<li>le <a href="https://noullet-gei.gitlab.io/dmm/Chap4.3/DMM43.html">codage prédictif</a>, utilisant comme référence la trame précédente codée et décodée</li>
+<li>l'<a href="https://noullet-gei.gitlab.io/dmm/Chap4.3/DMM43.html">estimation de mouvement</a> par blocs (de taille fixe) pour améliorer la qualité des prédictions</li>
+<li>la quantification non uniforme des résidus, agencée de telle sorte que les pertes se trouvent corrigées à long terme</li>
+</ol>
+(On laisse intentionnellement de coté d'autres techniques importantes telles que conversion YUV et transformation fréquentielle par DCT,
+tout en gardant à l'esprit que ces techniques devraient être appliquées en complément de celles qu'on étudie ici.)
+ 
+<h2>Méthode proposée</h2>
+<ul>
+<li>La video à comprimer se présentera sous forme de fichier <a href="#format_avi">AVI non comprimé</a> en format BGR (24 bits par pixels)<br>
+Une bibliothèque de fontions (avi_nc) est disponible pour manipuler ces fichiers</li>
+<li>La sortie du codeur expérimental V42 se présentera aussi sous forme de fichier AVI non comprimé,
+ce qui permettra de visualiser les résidus des blocs avec un outil existant supportant AVI (par exemple VirtualDub ou VLC)<br>
+Ce fichier n'est pas plus petit que l'original, mais il doit être plus compressible, ce qu'on devra vérifier avec
+des outils de compression génériques (zip, gzip, 7z, bzip2)</li>
+<li>Le décodeur V42 devra restituer un fichier AVI similaire à l'original, aux pertes près</li>
+</ul>
+<h2>Spécification V42</h2>
+<ul>
+<li>Utilisation de blocs de 8x8 pixels. Les dimensions de la video originale doivent impérativement être multiples de 8.</li>
+<li>Les résidus (différences entre l'original et le prédicteur) sont codés sur 3 composantes BGR de 8 bits chacune,
+aux mêmes positions dans le buffer de trame que les pixels de la trame originale</li>
+<li>Les résidus sont codés par des valeurs non signées, décalées de 128 de manière à ce qu'une différence nulle soit
+représentée par un gris médian.</li>
+<li>Le format V42 supporte jusqu'a 4 tables de quantifications pour ces résidus, parmi lesquelles l'encodeur peut faire un choix optimal
+pour chaque bloc.</li>
+<li>Les vecteurs d'estimation de mouvement et quelques données auxiliaires sont stockées dans un tableau qui est logé
+après la fin des données de chaque trame.<br>
+Ce tableau contient un entier de 16 bits pour chaque bloc de 8x8 pixels.</li>
+<li>Pour assurer la compatibilité avec les lecteurs standard, cet espace est obtenu sous forme de quelques lignes de pixels "fictifs"
+créées en augmentant la hauteur de l'image.<br>
+Le décodeur devra naturellement restituer la hauteur originale.</li>
+<li>Codage vecteurs (16 bits pour chaque bloc)<br>
+<table border="1"><tr><td colspan="2">MSB <b>iXXXXXXXqqYYYYYY</b> LSB</td></tr>
+<tr><td>i</td><td>1 si le bloc est une copie de l'original (image clef)</td></tr>
+<tr><td>XXXXXXX</td><td>composante X du vecteur sur 7 bits signés</td></tr>
+<tr><td>qq</td><td>indice du quantificateur, de 0 à 3</td></tr>
+<tr><td>YYYYYY</td><td>composante Y du vecteur sur 6 bits signés</td></tr>
+</table>
+Le vecteur représente la translation à appliquer à l'origine du bloc courant pour trouver le prédicteur dans la trame de référence.
+</li>
+</ul>
+<img src="v42.png">   
+<h2>Déroulement des opérations</h2>
+L'archive <a href="V42g.zip">V42g.zip</a> contient le code source d'un encodeur et d'un décodeur fonctionnels mais inachevés.
+<ul><li>L'encodeur sait faire du codage prédictif, mais pas d'estimation de mouvement.<br>
+Il crée l'espace pour les vecteurs mais leur donne toujours une valeur nulle.<br>
+Le décodeur supporte l'estimation de mouvement.</li>
+<li>L'ensemble n'utilise qu'une table de quantification sur les 4 possibles, <a href="PLOT/v42_quant.html">cette table</a> introduit un minimum de pertes.</li>
+<li>Ce code source est compatible avec gcc sous Windows (MinGW) et sous Linux</li>
+</ul>
+Etapes du travail à effectuer (2 séances) :
+<ol><li>Compiler et tester l'encodeur et le décodeur fournis, observer la video codée et decodée</li>
+<li>Ajouter l'estimation de mouvement à l'encodeur<br>
+<b>Attention: </b>le bloc prédicteur ne doit jamais déborder des limites de l'image de référence</li>
+<li>Ajouter d'autres tables de quantification en vue d'améliorer la compressibilité de la video codée</li>
+</ol>
+
+<h2 id="format_avi">Annexe : format AVI non comprimé</h2>
+<li>Dans le buffer chaque pixel est représenté par 3 bytes dans l'ordre B, G, R.</li>
+<li>Dans le buffer les pixels de chaque ligne sont placés dans l'ordre de gauche à droite.</li>
+<li>Dans le buffer les lignes sont placées dans l'ordre du bas vers le haut (Attention !).</li>
+<li>Le nombre de bytes par ligne ou "stride" est égal à 3 fois la largeur de l'image, ou éventuellement
+un peu plus pour des raisons d'alignement, ainsi on devra toujours utiliser la valeur fournie par le
+header du fichier AVI (s->ll).</li>
+</ul>
+
+</body>
+</html>
