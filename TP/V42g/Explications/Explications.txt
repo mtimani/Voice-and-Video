@@ -1,0 +1,43 @@
+EJIGU Michael et TIMANI Mario
+
+Explications TP Vidéo :
+
+L'objectif de ce TP était de s'approprier des techniques utilisés en compression de fichiers vidéos.
+Une première partie était consacrée à l'encodage des vecteurs de mouvements en utilisant le calculateur de différences par blocs.
+Cette compression est réalisée via l'estimation de mouvement, ainsi que la quantification variable en fonction des différences (car l'oeil humain n'a pas besoin de beaucoup de détails dans une zone de fort contraste cf cours ) .
+Dans la partie estimation du mouvement nous remplaçons certains blocs de l'image par des vecteurs qui représentent le déplacement de ces blocs. Nous avons crée la fonction moy_abs_diff_bloc qui permet de calculer la moyenne des valeurs absolues des différences des composantes des pixels. Cette fonction nous permet d'estimer le vecteur de mouvement dans la fonction encode_trame.
+Dans la partie quantification, nous avons réalisés trois fonctions de quantification : 
+- diff/2+1 -> iquant = 0
+- 4*log(diff) -> iquant = 1
+- 2*log(diff) -> iquant = 2
+- log(diff) -> iquant = 3
+
+Le principe pour quantifier est le suivant : plus les différences sont grandes, plus on peut quantifier avec un pas plus grand, car l'oeil humain n'a pas besoin de beaucoup de détails dans une zone de fort contraste. Plus le iquant est grand, plus notre quantification est brusque et comprime plus.
+
+Résultats obtenus :
+
+Compression avec 7z de la vidéo brandon1.avi
+
+- Quantification 0 et Estimation de mouvement 0 : 10.6 Mo
+- Quantification 0 et Estimation de mouvement 63 : 8.5 Mo
+- Quantification 1 et Estimation de mouvement 0 : 8.4 Mo
+- Quantification 1 et Estimation de mouvement 63 : 7.9 Mo
+- Quantification 2 et Estimation de mouvement 0 : 7 Mo
+- Quantification 2 et Estimation de mouvement 63 : 6.8 Mo
+- Quantification 3 et Estimation de mouvement 0 : 5.5 Mo
+- Quantification 3 et Estimation de mouvement 63 : 5.2 Mo
+
+Avec toues les quantifications, la qualité de la vidéo est acceptable.
+
+Compression avec 7z de la vidéo plage1.avi
+
+- Quantification 0 et Estimation de mouvement 0 : 8.1 Mo
+- Quantification 0 et Estimation de mouvement 63 : 7.1 Mo
+- Quantification 1 et Estimation de mouvement 0 : 7.1 Mo
+- Quantification 1 et Estimation de mouvement 63 : 6.5 Mo
+- Quantification 2 et Estimation de mouvement 0 : 6.1 Mo
+- Quantification 2 et Estimation de mouvement 63 : 5.7 Mo
+- Quantification 3 et Estimation de mouvement 0 : 4.9 Mo
+- Quantification 3 et Estimation de mouvement 63 : 4.5 Mo
+
+Avec toues les quantifications, la qualité de la vidéo est acceptable.
