@@ -56,7 +56,23 @@ static void generate_default_quant( int iquant )
 int diff, code;
 for	( diff = 1; diff < 256; ++diff )
 	{
-	code = diff / 2 + 1;	// +1 -> +1, +255 -> +128
+	//code = diff / 2 + 1;	// +1 -> +1, +255 -> +128
+	switch(iquant){
+		case 0:
+			code = diff / 2 + 1;
+			break;
+		case 1:
+			code = 4 * log(diff);
+			break;
+		case 2:
+			code = 2 * log(diff);
+			break;
+		case 3:
+			code = log(diff);
+			break;
+		default:
+			code = diff / 2 + 1;
+	}
 	code += 128;
 	if	( code > 255 ) code = 255;
 	if	( code < 0   ) code = 0;
